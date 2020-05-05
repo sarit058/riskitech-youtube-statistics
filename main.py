@@ -1,6 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+<<<<<<< HEAD
 import pandas as pd
 import json
 from pandas import json_normalize
@@ -10,6 +11,12 @@ con = psycopg2.connect(
     host = "localhost",
     user = "postgres",
     database = "youtube",
+=======
+
+con = psycopg2.connect(
+    host = "localhost",
+    user = "postgres",
+>>>>>>> a3f688eb1cb25bddcd40398f7e76279e0d771e57
     password = "where564"
 )
 
@@ -17,6 +24,7 @@ con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
 cur = con.cursor()
 
+<<<<<<< HEAD
 
 class mydatabase:
     def __init__(self, name):
@@ -125,11 +133,26 @@ mdb = mydatabase('youtube')
 # mdb.del_data('USvideos.csv')
 
 mdb.init_json('US_category_id.json')
+=======
+class mydatabase:
+    def __init__(self, name):
+        self.name = name
+    def init_database(self):
+        cur.execute("CREATE DATABASE {0!s}".format(mdb.name))
+    def drop_database(self):
+        cur.execute("DROP DATABASE {0!s}".format(mdb.name))
+mdb = mydatabase('youtube')
+mdb.init_database()
+
+>>>>>>> a3f688eb1cb25bddcd40398f7e76279e0d771e57
 
 con.close()
 
 
+<<<<<<< HEAD
 
     
 
 
+=======
+>>>>>>> a3f688eb1cb25bddcd40398f7e76279e0d771e57
