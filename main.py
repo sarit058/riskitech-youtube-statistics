@@ -1,6 +1,9 @@
 import psycopg2
-import pandas as pd
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
+import pandas as pd
+import json
+from pandas import json_normalize
 
 ## connection to postgres server
 con = psycopg2.connect(
@@ -70,7 +73,7 @@ class mydatabase:
             astr ="'" + seperator.join(str(x) for x in a) + "'"
       
         
-            cur.execute("INSERT INTO {0!s} VALUES ({2!s});".format(self.file_name,  column_text, astr))
+            cur.execute("INSERT INTO {0!s} ({1!s}) VALUES ({2!s});".format(self.file_name,  column_text, astr))
 
 
     def del_data(self, file_name):
@@ -79,12 +82,49 @@ class mydatabase:
         ## DELETING THE TABLE
         cur.execute("DROP TABLE {0!s}".format(self.file_name))
 
+    def init_json(self, j_file_name):
+        self.j_file_name = j_file_name[0:14]
+
+        ## READ JSON FILE
+        with open(j_file_name, 'rb') as json_file:
+            text = json.load(json_file)
+        
+        ## CREATING 'CATEGORY_ID' DATAFRAME
+        json_file = pd.DataFrame(json_normalize(text, 'items'))
+        json_file = json_file.set_index('id')
+        country_video_categories_titles =  pd.DataFrame(json_file['snippet.title'])
+        country_video_categories_titles.index.name = 'category_id'
+        country_video_categories_titles = country_video_categories_titles.rename(columns={'snippet.title': 'title'})
+        country_video_categories_titles.index = country_video_categories_titles.index.values.astype(int)
+        country_video_categories_titles['title'] = country_video_categories_titles['title'].astype(str)
+       
+        ## CREATING THE TABLE
+        cur.execute("CREATE TABLE {0!s} (id int NOT NULL PRIMARY KEY, category varchar);".format(self.j_file_name))
+        
+        ## DELETING THE TABLE
+        # cur.execute("DROP TABLE {0!s};".format(self.j_file_name))
+        
+
+        ## INSERTING DATA INTO THE TABLE
+        for i in range(len(country_video_categories_titles.index)):
+            catstr = str(country_video_categories_titles.index[i]) + ", '" + country_video_categories_titles.values[i][0] + "'" 
+                          
+            cur.execute("INSERT INTO {0!s} VALUES ({1!s});".format(self.j_file_name, catstr))
+        
+        ## FORIEN KEY IN CountryVideos
+        
+        
+
+
+
 
 mdb = mydatabase('youtube')
 # mdb.init_database()
 
-mdb.init_data('USvideos.csv')
+# mdb.init_data('USvideos.csv')
 # mdb.del_data('USvideos.csv')
+
+mdb.init_json('US_category_id.json')
 
 con.close()
 
